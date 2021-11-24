@@ -1,0 +1,93 @@
+---
+title: "Task 2: Political Affiliation and Environmentalist Identification"
+author: "Katheryn Moya"
+date: "11/24/2021"
+output: html_document
+---
+# Overview
+
+**Data citation:** Lightfoot, D. 2017. Lizard pitfall trap data (LTER-II, LTER-III) ver 36. Environmental Data Initiative. https://doi.org/10.6073/pasta/ff37b4cace16a9943575f3fd7067064e 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Attach necessary packages 
+
+library(here)
+library(tidyverse)
+library(broom)
+library(janitor)
+library(kableExtra)
+```
+
+# Read in data
+
+```{r}
+cons_survey <- read_csv(here("data","conservation_survey.csv"))
+
+# Simplify dataframe for ENV_ID and POL_OR
+
+cons_simple <- cons_survey %>% 
+  select("ENV_ID", "POL_OR") %>% 
+# Add a new column for political party and exclude all other political affiliations
+  filter(POL_OR %in% c("1","2","3","5","6","7")) %>%
+  mutate(political_party = case_when(
+    POL_OR == "1" ~ "Conservative",
+    POL_OR == "2" ~ "Conservative",
+    POL_OR == "3" ~ "Conservative",
+    POL_OR == "5" ~ "Liberal",
+    POL_OR == "6" ~ "Liberal",
+    POL_OR == "7" ~ "Liberal")) %>% 
+  # Change observation names for ENV_ID for clearer table
+  mutate(ENV_ID = case_when(
+    ENV_ID == "1" ~ "Yes",
+    ENV_ID == "2" ~ "No",
+    ENV_ID == "3" ~ "Unsure"))
+```
+
+# Find counts and proportions of “liberal” and “conservative” survey respondents who responded “Yes”, “No” and “Unsure” to the statement “I consider myself an environmentalist.” 
+
+```{r}
+cons_simple %>% 
+  count(political_party, ENV_ID)
+
+cons_counts <- cons_simple %>% 
+  tabyl(political_party, ENV_ID)
+
+# Calculate proportions
+cons_proporations <- cons_counts %>% 
+  adorn_percentages() %>%  
+  adorn_pct_formatting(digits = 2) %>% 
+  adorn_ns()
+```
+
+# Create a finalized table
+
+```{r}
+cons_proporations %>%
+  kbl(caption = "**Table 1.** Political Affilation and response to the statement 'I consider myself an environmentalist'",
+      col.names = c("",
+                    "No",
+                    "Yes",
+                    "Unsure")) %>%
+ kable_classic(full_width = TRUE, html_font = "Cambria") 
+```
+
+# Convert counts table to a contingency table
+
+```{r}
+cons_ct <- cons_counts %>% 
+  column_to_rownames(var = "political_party")
+```
+
+# Perform chi-square test
+
+```{r}
+cons_x2 <- chisq.test(cons_ct)
+cons_x2
+
+cons_tidy <- tidy(cons_x2)
+```
+There is a significant associationbetween political affiliation and if a person considers themselves an environmentalist ($\chi$^2^(`r cons_tidy$parameter`) = `r round(cons_tidy$statistic, 2)`, *p* = `r ifelse(cons_tidy$p.value < 0.001, paste("< 0.001"), paste("=", cons_tidy$p.value))`). There is sufficient evidence to retain the alternative hypothesis that political affiliation and environmentalist identification are not independent of each other.
+
