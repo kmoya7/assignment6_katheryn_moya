@@ -1,12 +1,12 @@
 ---
-title: "Task 3: Lizard Lengths"
+title: "Task 3: Female Lizard Lengths"
 author: "Katheryn Moya"
 date: "11/27/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 # Attach packages
 
@@ -16,15 +16,17 @@ library(janitor)
 library(kableExtra)
 library(effsize)
 ```
-# Read in data
+
 
 ```{r}
+# Read in data
+
 lizards <- read_csv(here("data","lizards.csv"))
 ```
 
+```{r}
 # Create simplified data frame
 
-```{r}
 female_liz <- lizards %>% 
   select("spp", "sex", "total_length") %>% 
 #filter for female and CNUN and CNTE
@@ -33,9 +35,10 @@ female_liz <- lizards %>%
 
 ```
 
-# Data visualization
+
 
 ```{r}
+# Data visualization
 # compare lengths of female lizards for the two species
 
 ggplot(data = female_liz, aes(x = spp, y = total_length)) +
@@ -46,11 +49,13 @@ ggplot(data = female_liz, aes(x = spp, y = total_length)) +
        fill = "Species") +
   scale_fill_manual(values = c("coral3", "darkseagreen3"))+
   scale_color_manual(values = c("coral2", "darkseagreen2")) +
-  theme_bw()
+  theme_bw() 
 ```
-# Finalized summary table
+
 
 ```{r}
+
+# Finalized summary table
 # Create data set with stats
 
 female_liz_stats <- female_liz %>% 

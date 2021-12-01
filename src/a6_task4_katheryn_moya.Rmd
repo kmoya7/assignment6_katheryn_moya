@@ -1,0 +1,52 @@
+---
+title: "Task 4: History of Mono Lake 1850-2017"
+author: "Katheryn Moya"
+date: "11/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(here)
+library(tidyverse)
+library(janitor)
+```
+
+```{r,include=FALSE}
+# read in data
+
+mono_annual <- read_csv(here("data","mono_lake_annual_levels.csv"), skip = 5) # skip first 5 rows that are not values
+colnames(mono_annual) <- c("year","lake_level_ft","stable_level","volume_acre_ft","surface_area_acres", "vertical_change") #change headers to clean up data and reflect observations
+```
+
+```{r, fig.cap = "**Figure 1.** Mono Lake levels (in feet above sea level) from 1850 - 2017. Major events have had large impacts on lake levels, including the diversion of water from the tributary streams of Mono Lake by the Los Angeles Department of Water & Power (DWP) in 1941. This resulted in a steep decline in lake levels over the next four decades, which exposed a land bridge 6,377 feet above sea level (shown in red). This land bridge formation decreased local water bird populations as previously protected nesting sites became available to predators. A notable shift in this trend occurred in 1984 through the first of eight lawsuits in the 1980s that challeged DWP using the  California Department of Fish & Game codes. These successful challenges led to water flowing into Mono Lake once again for the first time since 1941."}
+
+# Data visualization
+
+ggplot(data = mono_annual, aes(x = year, y = lake_level_ft)) +
+  geom_line(color = "darkslategrey") +
+  labs(title = "History of Mono Lake Levels from 1850 - 2017 (Lee Vining, California)",
+       x = "Year",
+       y = "Lake Level (ft. above sea level)") +
+  theme(plot.title = element_text(color = "darkslategrey", size = 12 , face = "bold")) +
+  theme(axis.title = (element_text(color = "darkslategrey", face = "bold"))) +
+  theme(plot.background = element_rect(fill = "lightcyan3"))+
+  theme(panel.background = element_rect(fill = "honeydew1")) +
+  theme(panel.border = element_rect(fill = NA, color = "darkslategrey")) +
+  geom_hline(yintercept = 6377, linetype = "longdash", alpha = 0.5, size = 1, color = "red") +
+   # create annotations for significant events in Mono lake history
+  annotate("segment", x = 1945, xend = 1940, y = 6422, yend = 6418,
+           arrow = arrow(length = unit(2, "mm")), color = "red4") +
+  annotate(geom ="text", x=1955, y=6423, label="DPW Water Divergence",
+              color="orange4", size= 2.5) +
+  annotate("segment", x = 1980, xend = 1984, y = 6384, yend = 6380.5,
+           arrow = arrow(length = unit(2, "mm")), color = "red4") +
+  annotate(geom ="text", x=1981, y=6386, label="Fish & Game
+           Code Lawsuits", color="orange4", size= 2.5) +
+  annotate(geom ="text", x=1857, y=6378, label="Land Bridge Formation",
+              color="red4", size= 2.5)
+  
+
+```
+
