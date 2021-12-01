@@ -5,6 +5,8 @@ date: "11/27/2021"
 output: html_document
 ---
 
+The data used in this visualization was collected and made available by David Lightfoot and colleagues at the Jornada Basin Long Term Ecological Research Program in southern New Mexico. The data contains  includes 14 variables for 4087 individual observations. Observations represent trapped lizards and the date, location, species, sex, age, total length, and tail condition. Following the exploratory data visualization, length comparisons between female lizards across species (Desert Grassland lizard (*Cnemidophorus uniparens*) and Colorado Checkered lizard (*Cnemidophorus tessalatus*)) through two-sample t-tests using a significance level ($\alpha$) of 0.05 throughout. Differences between groups are described by Cohen's *d* effect size.
+
 ```{r setup, include=FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
@@ -31,25 +33,30 @@ female_liz <- lizards %>%
   select("spp", "sex", "total_length") %>% 
 #filter for female and CNUN and CNTE
   filter(sex == "F") %>% 
-  filter(spp %in% c("CNUN","CNTE")) 
+  filter(spp %in% c("CNUN","CNTE")) %>% 
+# create new column with full name 
+  mutate(spp_full = case_when(
+    spp == "CNUN" ~ "Desert Grassland",
+    spp == "CNTE" ~ "Colorado Checkered"))
 
 ```
 
 
 
-```{r}
+```{r, fig.cap = "**Figure 1.** Female lizard total lengths (in mm) across species (Desert Grassland lizard (*Cnemidophorus uniparens*) and Colorado Checkered lizard (*Cnemidophorus tessalatus*)) at the Jornada Basin Long Term Ecological Research Program."}
 # Data visualization
 # compare lengths of female lizards for the two species
 
-ggplot(data = female_liz, aes(x = spp, y = total_length)) +
+ggplot(data = female_liz, aes(x = spp_full, y = total_length)) +
   geom_boxplot(aes(fill = spp)) +
-  labs(title = "Female Lizard Lengths in ",
-       y = "Count",
-       x = "Total length (mm)",
-       fill = "Species") +
+  labs(title = "Female Lizard Lengths in Jornada Basin LTER, New Mexico",
+       y = "Total length (mm)",
+       x = "Species",
+       fill = "Species")+
+  scale_x_discrete(labels=c("Colorado Checkered lizard","Desert Grassland lizard")) +
   scale_fill_manual(values = c("coral3", "darkseagreen3"))+
   scale_color_manual(values = c("coral2", "darkseagreen2")) +
-  theme_bw() 
+  theme_bw()
 ```
 
 
@@ -59,6 +66,7 @@ ggplot(data = female_liz, aes(x = spp, y = total_length)) +
 # Create data set with stats
 
 female_liz_stats <- female_liz %>% 
+  group_by(spp_full) %>% 
   summarize(mean_total_length = round(mean(total_length, na.rm = TRUE), digits = 2),
             sd_total_length = round(sd(total_length, na.rm = TRUE), digits = 2),
             sample_size = n())
@@ -66,20 +74,19 @@ female_liz_stats <- female_liz %>%
 # Create a finalized summary table
 
 female_liz_stats %>%
-  kbl(caption = "**Table 1.** ",
-      col.names = c("Mean Total Length (mm)",
+  kbl(caption = "**Table 1.** Total Length Distribution between female Desert Grassland and Colorado Checkered lizards in Jornada Basin LTER",
+      col.names = c("Species",
+                    "Mean Total Length (mm)",
                     "Standard Deviation (mm)",
                     "Sample Size (n)")) %>%
- kable_classic(full_width = FALSE, html_font = "Cambria") %>% 
+ kable_classic(full_width = TRUE, html_font = "Cambria") %>% 
    row_spec(0, align = "center", bold = TRUE, color = "#8b5f65", background = "	#ffec8b") %>% 
-  row_spec(1, align = "center", bold = FALSE, color = "#8b5f65", background = "#fafad2")
+  row_spec(1:2, align = "center", bold = FALSE, color = "#8b5f65", background = "#fafad2")
 ```
+There is a significant difference in total length difference in mean total length between female lizards for the two species. The actual mean difference in total length between these two species of female lizards is 97.29 mm, with a % difference in total length of 23.5%. Through a Cohen’s d analysis, there is a large effect size, signifying that there is an important difference between the total lengths of female lizards across species.
 
-Answer: is there a significant difference in total length difference in mean total length between female lizards for the two species? Note: you should do exploratory analyses (e.g. histograms, QQ-plots) to determine if assumptions of a hypothesis test you decide on are appropriate, and include code used to do that, even though it won’t show up in your knitted document. 
 
-## Exploratory Analyses
-
-```{r}
+```{r, include = FALSE}
 # make exploratory graphs to explore assumptions of hypothesis test
 
 ggplot(data = female_liz, aes(x = total_length)) +
@@ -93,7 +100,7 @@ ggplot(data = female_liz, aes(sample = total_length)) +
   aes(color = spp)
 ```
 
-```{r}
+```{r, include= FALSE}
 # create vectors for CNUN and CNTE length for two-sample t-test
 
 cnun_length <- female_liz %>% 
@@ -117,9 +124,6 @@ female_liz_cohen <- cohen.d(cnun_length, cnte_length)
 
 female_liz_cohen
 ```
-
-```{r}
-
-```
+**Data citation:** Lightfoot, D. 2017. Lizard pitfall trap data (LTER-II, LTER-III) ver 36. Environmental Data Initiative. https://doi.org/10.6073/pasta/ff37b4cace16a9943575f3fd7067064e 
 
 
